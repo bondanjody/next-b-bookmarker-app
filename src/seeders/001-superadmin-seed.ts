@@ -1,67 +1,34 @@
-import { Sequelize } from "sequelize";
+import { QueryInterface } from "sequelize";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
-import initUserModel from "../models/user.model.ts";
 
 dotenv.config();
 
-// ==============================
-// 1️⃣ Sequelize instance
-// ==============================
-const sequelize = new Sequelize(
-  process.env.DB_NAME!,
-  process.env.DB_USER!,
-  process.env.DB_PASS!,
-  {
-    host: process.env.DB_HOST,
-    port: Number(process.env.DB_PORT || 5432),
-    dialect: "postgres",
-    logging: false,
-  }
-);
+export async function up(queryInterface: QueryInterface) {
+  const username = process.env.SUPERADMIN_USERNAME || "superadmin";
+  const plainPassword = process.env.SUPERADMIN_PASSWORD || "superadmin123"; // ⛔ ganti setelah login pertama
+  const saltRounds = Number(process.env.BCRYPT_SALT_ROUNDS || 10);
 
-// ==============================
-// 2️⃣ Seeder function
-// ==============================
-async function seedSuperAdmin() {
-  try {
-    // Init User model
-    const UserModel = initUserModel(sequelize);
+  // Hash password
+  const hashedPassword = await bcrypt.hash(plainPassword, saltRounds);
 
-    // Sinkronisasi model tanpa drop table
-    await sequelize.sync();
-
-    const username = process.env.SUPERADMIN_USERNAME || "superadmin";
-    const passwordPlain = process.env.SUPERADMIN_PASSWORD || "superadmin123";
-
-    // Cek apakah superadmin sudah ada
-    const existing = await UserModel.findByPk(username);
-    if (existing) {
-      console.log("Superadmin sudah ada:", username);
-      return;
-    }
-
-    // Hash password
-    const saltRounds = Number(process.env.BCRYPT_SALT_ROUNDS || 10);
-    const hashedPassword = await bcrypt.hash(passwordPlain, saltRounds);
-
-    // Buat superadmin
-    await UserModel.create({
+  // Insert superadmin
+  await queryInterface.bulkInsert("b_bookmarker_users_tbl", [
+    {
       username,
       password: hashedPassword,
       role: "B.BM.SUPERADMIN",
       is_active: true,
-    });
-
-    console.log("Superadmin berhasil dibuat:", username);
-  } catch (err) {
-    console.error("Gagal membuat superadmin:", err);
-  } finally {
-    await sequelize.close();
-  }
+      created_at: new Date(),
+      updated_at: null,
+      deleted_at: null,
+    },
+  ]);
 }
 
-// ==============================
-// 3️⃣ Jalankan seeder
-// ==============================
-seedSuperAdmin();
+export async function down(queryInterface: QueryInterface) {
+  // Hapus superadmin
+  await queryInterface.bulkDelete("b_bookmarker_users_tbl", {
+    username: process.env.SUPERADMIN_USERNAME || "superadmin",
+  });
+}
