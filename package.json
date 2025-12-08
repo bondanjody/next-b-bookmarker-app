@@ -8,8 +8,7 @@
     "start": "next start",
     "db:migrate": "sequelize db:migrate",
     "db:migrate:undo": "sequelize db:migrate:undo",
-    "db:seed": "ts-node -r tsconfig-paths/register ./node_modules/.bin/sequelize db:seed:all",
-    "seed:superadmin": "node --loader ts-node/esm src/seeders/001-superadmin-seed.ts"
+    "db:seed": "ts-node -r tsconfig-paths/register ./node_modules/.bin/sequelize db:seed:all"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
