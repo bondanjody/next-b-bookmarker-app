@@ -5,31 +5,31 @@ import { Model, DataTypes, Optional, Sequelize } from "sequelize";
 // ==============================
 export type UserRole = "B.BM.USER" | "B.BM.ADMIN" | "B.BM.SUPERADMIN";
 
-// ==============================
-// 2️⃣ Interface atribut user
-// ==============================
+/**
+ * Interface atribut penuh user
+ */
 export interface UserAttributes {
   username: string;
   password: string;
-  role: UserRole;
+  role: UserRole; // gunakan UserRole type
   is_active: boolean;
   created_at?: Date;
   updated_at?: Date;
   deleted_at?: Date | null;
 }
 
-// ==============================
-// 3️⃣ Atribut opsional saat create
-// ==============================
+/**
+ * Atribut opsional saat create
+ */
 export interface UserCreationAttributes
   extends Optional<
     UserAttributes,
     "role" | "is_active" | "created_at" | "updated_at" | "deleted_at"
   > {}
 
-// ==============================
-// 4️⃣ Model class
-// ==============================
+/**
+ * Model class
+ */
 export class User
   extends Model<UserAttributes, UserCreationAttributes>
   implements UserAttributes
@@ -44,9 +44,9 @@ export class User
   public readonly deleted_at!: Date | null;
 }
 
-// ==============================
-// 5️⃣ Init model function
-// ==============================
+/**
+ * Init model
+ */
 export default function initUserModel(sequelize: Sequelize): typeof User {
   User.init(
     {
@@ -72,15 +72,12 @@ export default function initUserModel(sequelize: Sequelize): typeof User {
       created_at: {
         type: DataTypes.DATE,
         allowNull: false,
-        defaultValue: DataTypes.NOW,
       },
       updated_at: {
         type: DataTypes.DATE,
-        allowNull: true,
       },
       deleted_at: {
         type: DataTypes.DATE,
-        allowNull: true,
       },
     },
     {
@@ -92,7 +89,7 @@ export default function initUserModel(sequelize: Sequelize): typeof User {
       createdAt: "created_at",
       updatedAt: "updated_at",
 
-      paranoid: true, // untuk deleted_at
+      paranoid: true,
       deletedAt: "deleted_at",
     }
   );

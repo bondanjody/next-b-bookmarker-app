@@ -1,89 +1,101 @@
 import { Sequelize } from "sequelize";
-import initUserModel, { User } from "./user.model";
+import dotenv from "dotenv";
+
+// import semua init model
+import initUserModel, { User, UserRole } from "./user.model";
 import initCategoryModel, { Category } from "./category.model";
-import initCreatorModel, { Creator } from "./creator.model";
-import initSourceModel, { Source } from "./source.model";
 import initTypeModel, { Type } from "./type.model";
+import initSourceModel, { Source } from "./source.model";
+import initCreatorModel, { Creator } from "./creator.model";
 import initItemModel, { Item } from "./item.model";
 
-// ==============================
-// 1️⃣ Sequelize instance
-// ==============================
-const sequelize = new Sequelize(
-  process.env.DB_NAME!,
-  process.env.DB_USER!,
-  process.env.DB_PASS!,
-  {
-    host: process.env.DB_HOST,
-    port: Number(process.env.DB_PORT || 5432),
-    dialect: "postgres",
-    logging: false,
-  }
-);
+dotenv.config();
 
-// ==============================
-// 2️⃣ Init models
-// ==============================
-export const UserModel = initUserModel(sequelize);
-export const CategoryModel = initCategoryModel(sequelize);
-export const CreatorModel = initCreatorModel(sequelize);
-export const SourceModel = initSourceModel(sequelize);
-export const TypeModel = initTypeModel(sequelize);
-export const ItemModel = initItemModel(sequelize);
+const sequelize = new Sequelize({
+  database: process.env.DB_NAME!,
+  username: process.env.DB_USER!,
+  password: process.env.DB_PASS,
+  host: process.env.DB_HOST || "127.0.0.1",
+  port: Number(process.env.DB_PORT || 5432),
+  dialect: "postgres",
+  logging: false,
+  define: {
+    timestamps: false, // karena kita menggunakan created_at, updated_at manual
+    underscored: true,
+  },
+});
 
-// ==============================
-// 3️⃣ Define Associations / Relasi
-// ==============================
+// ==========================
+// INIT SEMUA MODEL
+// ==========================
+initUserModel(sequelize);
+initCategoryModel(sequelize);
+initTypeModel(sequelize);
+initSourceModel(sequelize);
+initCreatorModel(sequelize);
+initItemModel(sequelize);
 
-// --- User ---
-// User membuat Item, Category, Creator, Source, Type
-UserModel.hasMany(ItemModel, { foreignKey: "created_by", as: "items_created" });
-UserModel.hasMany(CategoryModel, {
-  foreignKey: "created_by",
-  as: "categories_created",
-});
-UserModel.hasMany(CreatorModel, {
-  foreignKey: "created_by",
-  as: "creators_created",
-});
-UserModel.hasMany(SourceModel, {
-  foreignKey: "created_by",
-  as: "sources_created",
-});
-UserModel.hasMany(TypeModel, { foreignKey: "created_by", as: "types_created" });
+// ==========================
+// RELASI ITEM → MASTER TABLE
+// ==========================
 
-// --- Item ---
-ItemModel.belongsTo(UserModel, {
-  foreignKey: "created_by",
-  as: "creator_user",
-});
-ItemModel.belongsTo(CategoryModel, {
+// Item → Category
+Item.belongsTo(Category, {
   foreignKey: "category",
   as: "category_data",
 });
-ItemModel.belongsTo(CreatorModel, {
+
+// Item → Type
+Item.belongsTo(Type, {
+  foreignKey: "type",
+  as: "type_data",
+});
+
+// Item → Source
+Item.belongsTo(Source, {
+  foreignKey: "source",
+  as: "source_data",
+});
+
+// Item → Creator
+Item.belongsTo(Creator, {
   foreignKey: "creator",
   as: "creator_data",
 });
-ItemModel.belongsTo(SourceModel, { foreignKey: "source", as: "source_data" });
-ItemModel.belongsTo(TypeModel, { foreignKey: "type", as: "type_data" });
 
-// --- Category, Creator, Source, Type ---
-// Tabel-tabel ini punya banyak Item
-CategoryModel.hasMany(ItemModel, { foreignKey: "category", as: "items" });
-CreatorModel.hasMany(ItemModel, { foreignKey: "creator", as: "items" });
-SourceModel.hasMany(ItemModel, { foreignKey: "source", as: "items" });
-TypeModel.hasMany(ItemModel, { foreignKey: "type", as: "items" });
+// ==========================
+// RELASI AUDIT TRAIL → USER
+// ==========================
 
-// ==============================
-// 4️⃣ Export
-// ==============================
-export default {
-  sequelize,
-  User: UserModel,
-  Category: CategoryModel,
-  Creator: CreatorModel,
-  Source: SourceModel,
-  Type: TypeModel,
-  Item: ItemModel,
-};
+// Category
+Category.belongsTo(User, { foreignKey: "created_by", as: "creator_user" });
+Category.belongsTo(User, { foreignKey: "updated_by", as: "updater_user" });
+Category.belongsTo(User, { foreignKey: "deleted_by", as: "deleter_user" });
+
+// Type
+Type.belongsTo(User, { foreignKey: "created_by", as: "creator_user" });
+Type.belongsTo(User, { foreignKey: "updated_by", as: "updater_user" });
+Type.belongsTo(User, { foreignKey: "deleted_by", as: "deleter_user" });
+
+// Source
+Source.belongsTo(User, { foreignKey: "created_by", as: "creator_user" });
+Source.belongsTo(User, { foreignKey: "updated_by", as: "updater_user" });
+Source.belongsTo(User, { foreignKey: "deleted_by", as: "deleter_user" });
+
+// Creator
+Creator.belongsTo(User, { foreignKey: "created_by", as: "creator_user" });
+Creator.belongsTo(User, { foreignKey: "updated_by", as: "updater_user" });
+Creator.belongsTo(User, { foreignKey: "deleted_by", as: "deleter_user" });
+
+// Item
+Item.belongsTo(User, { foreignKey: "created_by", as: "creator_user" });
+Item.belongsTo(User, { foreignKey: "updated_by", as: "updater_user" });
+Item.belongsTo(User, { foreignKey: "deleted_by", as: "deleter_user" });
+
+// ==========================
+// EXPORT SEMUA MODEL
+// ==========================
+export { sequelize, User, Category, Type, Source, Creator, Item };
+
+// ⚠️ Export tipe UserRole agar bisa dipakai di controller
+export type { UserRole };
