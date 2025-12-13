@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { User } from "../../../models";
+import { serialize } from "cookie";
 
 export default async function handler(
   req: NextApiRequest,
@@ -34,7 +35,6 @@ export default async function handler(
         message: "Username atau password salah",
       });
     }
-    console.log("Nilai user : ", user);
 
     const isMatch = await bcrypt.compare(password, user.dataValues.password);
     if (!isMatch) {
@@ -54,6 +54,17 @@ export default async function handler(
       {
         expiresIn: process.env.JWT_EXPIRES_IN || "1d",
       }
+    );
+
+    // Set HttpOnly cookie
+    res.setHeader(
+      "Set-Cookie",
+      serialize("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 60 * 60, // 1 hari
+      })
     );
 
     return res.status(200).json({

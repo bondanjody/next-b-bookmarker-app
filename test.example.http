@@ -1,0 +1,31 @@
+@baseUrl = xxx
+@token = xxx
+
+### Login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+    "username":"xxx",
+    "password":"xxx"
+}
+
+### Add New Category
+POST {{baseUrl}}/api/category-management/add-new-category
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "name":"xxx"
+}
+
+### Add New User
+POST {{baseUrl}}/api/user-management/add-new-user
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "username":"xxx",
+    "password":"xxx",
+    "role":"xxx"
+}
