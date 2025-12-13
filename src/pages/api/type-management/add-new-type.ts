@@ -56,7 +56,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   } catch (error: any) {
     return res.status(500).json({
       status: false,
-      message: "FAILED to save category data.",
+      message: "FAILED to save type data.",
       error: error.message,
     });
   }
