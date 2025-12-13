@@ -1,78 +1,163 @@
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/router";
+import Head from "next/head";
+import { toast } from "sonner";
 import Image from "next/image";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Button } from "@/components/ui/button";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+const Login = () => {
+  const appName = process.env.NEXT_PUBLIC_APP_NAME || "Bookmarker App";
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const usernameInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+  useEffect(() => {
+    // Cek jika user sudah login
+    fetch("/api/auth/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((user) => {
+        if (!user) return;
+        else if (user.role === "B.BM.ADMIN" || user.role === "B.BM.SUPERADMIN")
+          router.push("/admin/dashboard");
+        else if (user.role === "B.BM.USER") router.push("/dashboard");
+        else router.push("/");
+      });
+  }, []);
 
-export default function Home() {
+  useEffect(() => {
+    if (name === "") {
+      // Fokuskan input hanya saat barcode kosong (setelah reset)
+      usernameInputRef.current?.focus();
+    }
+  }, [name]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    // Validasi input
+    if (name.trim().length === 0) {
+      toast.warning("Username can NOT be empty !");
+      setLoading(false);
+      return;
+    }
+
+    if (password.trim().length === 0) {
+      toast.warning("Password can NOT be empty !");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // Proses login
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, password }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        toast.warning(`${data.message ? data.message : "Login FAILED !"}`);
+        return;
+      }
+
+      // Ambil data user setelah login
+      const userRes = await fetch("/api/auth/me");
+      const user = await userRes.json();
+
+      // Ambil redirect dari query
+      const redirectTo = (router.query.redirect as string) || null;
+
+      // Jika ada redirect di URL, arahkan ke sana
+      if (redirectTo) {
+        router.push(redirectTo);
+        return;
+      }
+
+      // Jika tidak, arahkan berdasarkan role
+      if (user.role === "SUPERADMIN" || user.role === "ADMIN") {
+        router.push("/admin/dashboard");
+      } else if (user.role === "USER") {
+        router.push("/dashboard");
+      } else {
+        router.push("/");
+      }
+    } catch (err) {
+      toast.warning("There is an error in login !");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div
-      className={`${geistSans.className} ${geistMono.className} flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black`}
-    >
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the index.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <>
+      <Head>
+        <title>{appName} :: Login</title>
+      </Head>
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="w-full max-w-sm p-6 bg-white rounded-lg shadow-md">
+          {/* <h2 className="text-2xl font-bold mb-4 text-center">Login</h2> */}
+          <div className="flex flex-col items-center justify-center mb-4">
+            <div className="flex items-center">
+              <Image
+                src="/bookmarker_icon.png"
+                alt="server_room_logo"
+                width={150}
+                height={75}
+              />
+            </div>
+            <div className="mt-4 font-bold text-center text-xl">
+              <p>{appName}</p>
+            </div>
+          </div>
+          {error && (
+            <div className="mb-4 text-red-500 text-center">{error}</div>
+          )}
+          <form onSubmit={handleLogin}>
+            <div className="mb-4">
+              <label htmlFor="username" className="block text-gray-700">
+                Username
+              </label>
+              <input
+                type="text"
+                id="username"
+                value={name}
+                disabled={loading}
+                onChange={(e) => setName(e.target.value)}
+                required
+                autoFocus={true}
+                ref={usernameInputRef}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-indigo-500 focus:ring-opacity-50"
+              />
+            </div>
+            <div className="mb-6">
+              <label htmlFor="password" className="block text-gray-700">
+                Password
+              </label>
+              <input
+                type="password"
+                id="password"
+                value={password}
+                disabled={loading}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-indigo-500 focus:ring-opacity-50"
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              Login
+            </Button>
+          </form>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs/pages/getting-started?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </div>
+    </>
   );
-}
+};
+
+export default Login;
