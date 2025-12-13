@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 
 const Login = () => {
   const appName = process.env.NEXT_PUBLIC_APP_NAME || "Bookmarker App";
-  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -22,26 +22,24 @@ const Login = () => {
       .then((res) => (res.ok ? res.json() : null))
       .then((user) => {
         if (!user) return;
-        else if (user.role === "B.BM.ADMIN" || user.role === "B.BM.SUPERADMIN")
-          router.push("/admin/dashboard");
-        else if (user.role === "B.BM.USER") router.push("/dashboard");
+        else if (user) router.push("/item-management");
         else router.push("/");
       });
   }, []);
 
   useEffect(() => {
-    if (name === "") {
+    if (username === "") {
       // Fokuskan input hanya saat barcode kosong (setelah reset)
       usernameInputRef.current?.focus();
     }
-  }, [name]);
+  }, [username]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     // Validasi input
-    if (name.trim().length === 0) {
+    if (username.trim().length === 0) {
       toast.warning("Username can NOT be empty !");
       setLoading(false);
       return;
@@ -58,7 +56,7 @@ const Login = () => {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, password }),
+        body: JSON.stringify({ username, password }),
       });
 
       if (!res.ok) {
@@ -80,11 +78,8 @@ const Login = () => {
         return;
       }
 
-      // Jika tidak, arahkan berdasarkan role
-      if (user.role === "SUPERADMIN" || user.role === "ADMIN") {
-        router.push("/admin/dashboard");
-      } else if (user.role === "USER") {
-        router.push("/dashboard");
+      if (user) {
+        router.push("/item-management");
       } else {
         router.push("/");
       }
@@ -107,7 +102,7 @@ const Login = () => {
             <div className="flex items-center">
               <Image
                 src="/bookmarker_icon.png"
-                alt="server_room_logo"
+                alt="library_icon.png"
                 width={150}
                 height={75}
               />
@@ -127,9 +122,9 @@ const Login = () => {
               <input
                 type="text"
                 id="username"
-                value={name}
+                value={username}
                 disabled={loading}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => setUsername(e.target.value)}
                 required
                 autoFocus={true}
                 ref={usernameInputRef}
