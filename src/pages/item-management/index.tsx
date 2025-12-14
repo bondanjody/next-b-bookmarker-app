@@ -143,10 +143,10 @@ export default function ItemManagementDashboard() {
       <Head>
         <title>{appName} :: Item Management Dashboard</title>
       </Head>
-      {user?.role === "B.BM.USER" && <NavbarUser userName={user?.name} />}
-      {user?.role === "B.BM.ADMIN" && <NavbarAdmin userName={user?.name} />}
+      {user?.role === "B.BM.USER" && <NavbarUser userName={user?.username} />}
+      {user?.role === "B.BM.ADMIN" && <NavbarAdmin userName={user?.username} />}
       {user?.role === "B.BM.SUPERADMIN" && (
-        <NavbarSuperAdmin userName={user?.name} />
+        <NavbarSuperAdmin userName={user?.username} />
       )}
       <div className="flex">
         <div className="p-5 w-full md:max-w-full">

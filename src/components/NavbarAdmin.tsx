@@ -14,12 +14,14 @@ import {
 import { Button } from "./ui/button";
 import React from "react";
 import { Menu, UserIcon } from "lucide-react"; // Optional: ikon menu
+import { useRouter } from "next/router";
 
 interface DropdownNavbarAdmin {
   userName: string;
 }
 
 const NavbarAdmin: React.FC<DropdownNavbarAdmin> = ({ userName }) => {
+  const router = useRouter();
   const logoutHandler = async (e: React.FormEvent) => {
     e.preventDefault();
     await fetch("/api/auth/logout");
@@ -57,7 +59,17 @@ const NavbarAdmin: React.FC<DropdownNavbarAdmin> = ({ userName }) => {
           <DropdownMenuContent>
             <DropdownMenuLabel>{userName}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="flex justify-center">
+            <DropdownMenuItem
+              onSelect={() => router.push("/category-management")}
+            >
+              Category Management
+            </DropdownMenuItem>
+            <DropdownMenuItem>Creator Management</DropdownMenuItem>
+            <DropdownMenuItem>Item Management</DropdownMenuItem>
+            <DropdownMenuItem>Source Management</DropdownMenuItem>
+            <DropdownMenuItem>Type Management</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
               <Button variant="destructive" onClick={logoutHandler}>
                 Logout
               </Button>
