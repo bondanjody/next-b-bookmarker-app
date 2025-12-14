@@ -138,7 +138,7 @@ export default function CategoryManagementDashboard() {
               </CardHeader>
               <CardContent className="space-y-2">
                 <div>
-                  <Link href="/item-management/add">
+                  <Link href="/category-management/add">
                     <Button variant="outline">
                       <PlusIcon className="mr-2" /> New Category
                     </Button>
