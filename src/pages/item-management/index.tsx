@@ -50,7 +50,7 @@ interface ItemModel {
 }
 
 export default function ItemManagementDashboard() {
-  const appName = process.env.NEXT_PUBLIC_APP_NAME || "Taking App";
+  const appName = process.env.NEXT_PUBLIC_APP_NAME || "Bookmarker App";
   const { user, loading } = useAuth([
     "B.BM.ADMIN",
     "B.BM.SUPERADMIN",

@@ -32,7 +32,7 @@ const NavbarSuperadmin: React.FC<DropdownNavbarSuperadmin> = ({ userName }) => {
     <div className="sticky top-0 z-50 bg-white border-b-2 shadow-lg py-2 px-5 flex justify-between items-center">
       {/* Logo */}
       <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
-        <Link href="/admin/dashboard" className="flex items-center">
+        <Link href="/" className="flex items-center">
           <div className="flex items-center gap-2">
             <Image
               src="/bookmarker_icon.png"
@@ -51,11 +51,12 @@ const NavbarSuperadmin: React.FC<DropdownNavbarSuperadmin> = ({ userName }) => {
       <div className="flex items-center space-x-2">
         {/* Avatar */}
         <DropdownMenu>
-          <DropdownMenuTrigger className="focus:outline-none">
+          <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon">
               <UserIcon className="w-5 h-5 sm:w-6 sm:h-6" />
             </Button>
           </DropdownMenuTrigger>
+
           <DropdownMenuContent>
             <DropdownMenuLabel>{userName}</DropdownMenuLabel>
             <DropdownMenuSeparator />
